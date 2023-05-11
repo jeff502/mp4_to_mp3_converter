@@ -120,7 +120,7 @@ def get_all_recordings_for_today(path: str) -> Union[List[str], List]:
     return files
 
 
-def file_was_created_today(mp4: str) -> Union[True, None]:
+def file_was_created_today(mp4: str) -> Union[bool, None]:
     """
     Checks if the specified MP4 file was created today.
 
