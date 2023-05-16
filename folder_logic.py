@@ -1,7 +1,7 @@
 import os
 import shutil
 from datetime import datetime, date
-from typing import List, Union
+from typing import List
 
 
 def collapse_sub_folders(path: str) -> None:
@@ -45,7 +45,7 @@ def collapse_sub_folders(path: str) -> None:
         raise
 
 
-def get_most_recent_recording(path: str) -> Union[str, None]:
+def get_most_recent_recording(path: str) -> str | None:
     """
     Retrieves the most recent recording file in the specified path.
 
@@ -83,7 +83,7 @@ def get_most_recent_recording(path: str) -> Union[str, None]:
     return os.path.join(path, most_recent_file)
 
 
-def get_all_recordings_for_today(path: str) -> Union[List[str], List]:
+def get_all_recordings_for_today(path: str) -> List[str] | None:
     """
     Retrieves the all mp4 files in the specified path that occurred today.
 
@@ -120,7 +120,7 @@ def get_all_recordings_for_today(path: str) -> Union[List[str], List]:
     return files
 
 
-def file_was_created_today(mp4: str) -> Union[bool, None]:
+def file_was_created_today(mp4: str) -> bool | None:
     """
     Checks if the specified MP4 file was created today.
 

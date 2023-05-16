@@ -2,7 +2,8 @@ import os
 
 from datetime import datetime
 from dotenv import dotenv_values
-from moviepy.editor import VideoFileClip
+from moviepy.video.io.VideoFileClip import VideoFileClip
+from typing import Optional
 
 from folder_logic import (
     collapse_sub_folders,
@@ -13,11 +14,11 @@ from folder_logic import (
 
 env_vars = dotenv_values(".env")
 
-FOLDER_PATH = env_vars["FOLDER_PATH"]
-DESTINATION_PATH = env_vars["DESTINATION_PATH"]
+FOLDER_PATH: str | None = env_vars["FOLDER_PATH"]
+DESTINATION_PATH: str | None = env_vars["DESTINATION_PATH"]
 
 
-def convert_mp4_to_mp3(file_path: str, destination_path: str = None) -> None:
+def convert_mp4_to_mp3(file_path: str, destination_path: Optional[str] = None) -> None:
     """
     Converts an MP4 file to MP3 format.
 
@@ -47,9 +48,9 @@ def convert_mp4_to_mp3(file_path: str, destination_path: str = None) -> None:
     if destination_path is None:
         destination_path = file_path
 
-    video = VideoFileClip(file_path)
+    video: VideoFileClip = VideoFileClip(file_path)
 
-    current_datetime = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
+    current_datetime = datetime.now().strftime("%Y-%m-%d_%H_%M_%S-%MS")
 
     output_file_name = current_datetime + ".mp3"
     output_file_path = os.path.join(
@@ -57,12 +58,12 @@ def convert_mp4_to_mp3(file_path: str, destination_path: str = None) -> None:
     ).replace("\\", "/")
 
     try:
-        video.audio.write_audiofile(output_file_path, codec="mp3")
+        video.audio.write_audiofile(output_file_path, codec="mp3")  # type: ignore
     except OSError as e:
         print(f"An error occurred during MP4 to MP3 conversion: {e}")
         raise
     finally:
-        video.close()
+        video.close()  # type: ignore
 
 
 def convert_most_recent_mp4() -> None:
@@ -83,10 +84,11 @@ def convert_most_recent_mp4() -> None:
         - The retrieved MP4 file path is then passed to the `convert_mp4_to_mp3` function for conversion.
 
     """
-    mp4 = get_most_recent_recording(FOLDER_PATH)
-    if mp4 is None:
-        return
-    convert_mp4_to_mp3(mp4, DESTINATION_PATH)
+    if FOLDER_PATH:
+        mp4 = get_most_recent_recording(FOLDER_PATH)
+        if mp4 is None:
+            return
+        convert_mp4_to_mp3(mp4, DESTINATION_PATH)
 
 
 def convert_all_mp4s_for_today() -> None:
@@ -108,7 +110,12 @@ def convert_all_mp4s_for_today() -> None:
         - If there are no MP4 recordings found for the current day, the function will not perform any conversion.
 
     """
-    list_of_mp4s = get_all_recordings_for_today(FOLDER_PATH)
+    list_of_mp4s: list[str] | None = get_all_recordings_for_today(FOLDER_PATH)  # type: ignore
+    if list_of_mp4s is None:
+        print(
+            "No MP4 recording found in the recordings folder. Ensure the '.env' folder has the proper paths set."
+        )
+        return
     for mp4 in list_of_mp4s:
         convert_mp4_to_mp3(mp4, DESTINATION_PATH)
 
@@ -146,6 +153,9 @@ def main():
     ) not in {"1", "2"}:
         print("Invalid selection.")
 
+    if FOLDER_PATH is None:
+        print("Folder path is not specified. Please check your '.env' file.")
+        return
     collapse_sub_folders(FOLDER_PATH)
     menu_logic = {"1": convert_most_recent_mp4, "2": convert_all_mp4s_for_today}
     menu_logic[user_input]()
